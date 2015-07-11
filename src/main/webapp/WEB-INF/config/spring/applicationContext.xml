@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:ws="http://jax-ws.dev.java.net/spring/core"
+       xmlns:wss="http://jax-ws.dev.java.net/spring/servlet"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://jax-ws.dev.java.net/spring/core http://jax-ws.dev.java.net/spring/core.xsd
+        http://jax-ws.dev.java.net/spring/servlet http://jax-ws.dev.java.net/spring/servlet.xsd">
+
+    <context:component-scan base-package="com.baz.scc"/>
+    
+    <context:property-placeholder location="classpath:application.properties, classpath:connection.properties" system-properties-mode="OVERRIDE" ignore-unresolvable="true"  />
+  
+    <!--    <bean id="usrcajaDataSource" class="oracle.ucp.jdbc.PoolDataSourceFactory" factory-method="getPoolDataSource">
+        <property name="URL" value="#{${application.produccion} ? '${prod.oracle.url}' : '${des.oracle.url}'}"/>
+        <property name="user" value="#{${application.produccion} ? '${prod.oracle.username}' : '${des.oracle.username}'}" />
+        <property name="password" value="#{${application.produccion} ? '${prod.oracle.password}' : '${des.oracle.password}'}" />
+        <property name="connectionFactoryClassName" value="oracle.jdbc.pool.OracleDataSource"/>
+        <property name="minPoolSize" value="2"/>
+        <property name="maxPoolSize" value="10"/>
+         <property name="initialPoolSize" value="5"/>
+        <property name="inactiveConnectionTimeout" value="120"/>
+        <property name="validateConnectionOnBorrow" value="true"/>
+        <property name="maxStatements" value="10"/>
+        <property name="sQLForValidateConnection" value="SELECT 1 FROM DUAL"/>
+    </bean>-->
+    
+    <bean id="usrcajaDataSource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close">
+        <property name="uRL" value="#{${application.produccion} ? '${prod.oracle.url}' : '${des.oracle.url}'}"/>
+        <property name="user" value="#{${application.produccion} ? '${prod.oracle.username}' : '${des.oracle.username}'}"/>
+        <property name="password" value="#{${application.produccion} ? '${prod.oracle.password}' : '${des.oracle.password}'}"/>
+        <property name="maxStatements" value="10"/>
+        <property name="connectionCacheProperties">
+            <props merge="default">
+                <prop key="MinLimit">2</prop>
+                <prop key="MaxLimit">10</prop>
+            </props>
+        </property>
+    </bean>
+    
+    <!-- Temporal -->
+    <bean id="usrinfcajaDataSource" class="oracle.jdbc.pool.OracleDataSource" destroy-method="close">
+        <property name="uRL" value="#{${application.produccion} ? '${prod.oracle.url}' : '${des.oracle.url}'}"/>
+        <property name="user" value="#{${application.produccion} ? '${prod.oracle.inf.username}' : '${des.oracle.inf.username}'}"/>
+        <property name="password" value="#{${application.produccion} ? '${prod.oracle.inf.password}' : '${des.oracle.inf.password}'}"/>
+        <property name="maxStatements" value="10"/>
+        <property name="connectionCacheProperties">
+            <props merge="default">
+                <prop key="MinLimit">2</prop>
+                <prop key="MaxLimit">10</prop>
+            </props>
+        </property>
+    </bean>
+    
+    <!-- JDBC Templates -->
+   
+    <bean id="usrcajaJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="usrcajaDataSource" />
+    </bean>
+    
+    <!-- Temporal -->
+    <bean id="usrinfcajaJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <constructor-arg ref="usrinfcajaDataSource" />
+    </bean>
+    
+    
+    <bean id="daoConfig" class="com.baz.scc.commons.support.CjCRDaoConfig">
+        <property name="objectUser" value="#{${application.produccion} ? '${prod.oracle.object.user}' : '${des.oracle.object.user}'}"/>
+    </bean>
+    
+       
+    <alias name="usrcajaJdbcTemplate" alias="plantillaJdbcTemplate" />  
+    <alias name="usrcajaJdbcTemplate" alias="as400JdbcTemplate" /> 
+    
+    <!-- Configuraciones -->
+    <bean id="appConfig" class="com.baz.scc.kiosco.support.CjCRPAppConfig">
+        <property name="production" value="${application.produccion}" />
+        <property name="clienteUnicoUDNSProduccion" value="${clienteunico.unidadesdenegocio.produccion}" />
+        <property name="clienteUnicoUDNSDesarrollo" value="${clienteunico.unidadesdenegocio.desarrollo}" />
+        <property name="clienteUnicoTipoClienteDb" value="${clienteunico.unidadesdenegocio.tipoclientebd}" />
+        <property name="prestaPrendaTotalProduccion" value="${prestaprenda.total.produccion}" />
+        <property name="prestaPrendaDetalleProduccion" value="${prestaprenda.detalle.produccion}" />
+        <property name="prestaPrendaTotalDesarrollo" value="${prestaprenda.total.desarrollo}" />
+        <property name="prestaPrendaDetalleDesarrollo" value="${prestaprenda.detalle.desarrollo}" />   
+        <property name="captacionTotalProduccion" value="${captacion.total.produccion}" />
+        <property name="captacionTotalDesarrollo" value="${captacion.total.desarrollo}" />
+        <property name="captacionDetalleProduccion" value="${captacion.detalle.produccion}" />
+        <property name="captacionDetalleDesarrollo" value="${captacion.detalle.desarrollo}" /> 
+    </bean> 
+    
+    <bean id="captacionConfig" class="com.baz.scc.kiosco.support.CjCRPCaptacionConfig">
+        <property name="captacionP055User" value="${captacion.p0055.user}" />
+        <property name="captacionP055Terminal" value="${captacion.p0055.terminal}" />
+        <property name="captacionP055Me" value="${captacion.p0055.me}" />
+        <property name="captacionP055Fu" value="${captacion.p0055.fu}" />
+        <property name="captacionB44SDa" value="${captacion.b44S.da}" />
+        <property name="captacionB44SDt" value="${captacion.b44S.dt}" />
+        <property name="captacionB44SOp" value="${captacion.b44S.op}" />
+        <property name="captacionB44SMo" value="${captacion.b44S.mo}" />
+        <property name="captacionB44SPa" value="${captacion.b44S.pa}" />
+        <property name="captacionB44SFi" value="${captacion.b44S.fi}" />
+        <property name="captacionB44STr" value="${captacion.b44S.tr}" />
+        <property name="captacionB44SIn" value="${captacion.b44S.in}" />
+        <property name="captacionB44STo" value="${captacion.b44S.to}" /> 
+    </bean>
+  
+    
+
+</beans>
